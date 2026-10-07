@@ -30,6 +30,10 @@ export function listEntries(key: string, filters: Record<string, string> = {}): 
 
 export function runAction(key: string, id: number, action: string): ActionResult {
   const meta = moduleMeta(key)
+  // 烟气净化有专用状态机（投运前置、异常必须先恢复、出口温度自动判定），通用入口不允许直接改它的状态。
+  if (key === 'fluegas') {
+    return { ok: false, message: '烟气净化记录必须走专用状态流转，请在烟气净化页面按状态执行动作' }
+  }
   const target = meta.actionTargets[action]
   if (!target) {
     return { ok: false, message: `${meta.entity}没有登记「${action}」这个动作` }
