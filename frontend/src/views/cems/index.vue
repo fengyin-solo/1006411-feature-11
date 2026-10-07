@@ -24,6 +24,15 @@
       </span>
     </p>
 
+    <section v-if="pendingReview.length" class="panel">
+      <h3>待核清单（{{ pendingReview.length }} 条）</h3>
+      <p class="pending-list">
+        <span v-for="item in pendingReview" :key="String(item.id)" class="pending-chip">
+          {{ item['监测编号'] }} · {{ item['监测因子'] }} · 实测 {{ item['实测值'] }} / 限值 {{ item['排放限值'] }}
+        </span>
+      </p>
+    </section>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
@@ -92,6 +101,8 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+// 待核清单不受筛选条件影响：凡 pending 的监测记录都要核，包括烟气净化联动过来的判定结果。
+const pendingReview = ref<EntryRow[]>([])
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,
@@ -128,6 +139,7 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    pendingReview.value = listEntries(meta.key).items.filter((row) => row.pending)
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '在线排放监测列表读取失败'
   }

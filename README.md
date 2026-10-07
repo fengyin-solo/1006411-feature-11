@@ -67,5 +67,12 @@ npm run build
   `frontend/src/api/local-service.ts`。
 - 字段、状态、动作与流转目标集中在 `frontend/src/data/modules.ts`；示例数据在
   `frontend/src/data/seed.ts`。
-- 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。
+- 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。模块在 `modules.ts` 里登记
+  `actionFrom`（每个动作允许的发起状态）后，`local-service.ts` 会按状态机拦截越级流转；
+  模块专属的校验、联动与留痕挂在 `frontend/src/api/` 下的规则文件里（如烟气净化的
+  `fluegas-rules.ts`），通过 `local-service.ts` 的 `MODULE_RULES` 注册。
+- 烟气净化线的状态线：待投运 → 运行中 → 已停运，运行中可上报为指标异常，指标异常必须
+  「处理恢复」回运行中才能停运。出口烟气温度超过 180℃ 自动切到指标异常，并同步一条待核记录到
+  在线排放监测；所有状态流转与数据修改都写入处置留痕（`frontend/src/data/audit-store.ts`，
+  单独存在 `waste-to-energy-plant:audit` 里）。
 - 想回到初始数据：清掉浏览器里 `waste-to-energy-plant:entries` 这一项，或调用 `resetModule(模块)`。
